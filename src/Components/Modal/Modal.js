@@ -1,230 +1,99 @@
-import {
-    Modal,
-    ModalOverlay,
-    ModalContent,
-    ModalHeader,
-    ModalFooter,
-    ModalBody,
-    ModalCloseButton,
-    FormControl,
-    FormLabel,
-    Input,
-    Button,
-    useDisclosure
-  } from '@chakra-ui/react'
+// import {
+//   VStack,
+//   HStack,
+//   Modal,
+//   ModalOverlay,
+//   ModalContent,
+//   ModalHeader,
+//   ModalBody,
+//   ModalCloseButton,
+//   Button,
+//   Text
+// } from "@chakra-ui/react";
+// import { Image } from "@chakra-ui/react";
+// import {
+//   getCoinbaseWalletProvider,
+//   getMetaMaskProvider,
+//   getWalletConnectProvider
+// } from "./providers";
 
-import React from 'react'
-
-
-
-import Onboard from "@web3-onboard/core";
-
-import { useState } from "react";
-import { VStack, Text, HStack, Select, Box } from "@chakra-ui/react";
-import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
-import { Tooltip } from "@chakra-ui/react";
-import { toHex, truncateAddress } from "../../utils";
-import injectedModule from "@web3-onboard/injected-wallets";
-import walletConnectModule from "@web3-onboard/walletconnect";
-import walletLinkModule from "@web3-onboard/walletlink";
-const MAINNET_RPC_URL = `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`;
-const ROPSTEN_RPC_URL = `https://ropsten.infura.io/v3/${process.env.INFURA_KEY}`;
-const RINKEBY_RPC_URL = `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`;
-
-const injected = injectedModule();
-const walletConnect = walletConnectModule();
-const walletLink = walletLinkModule();
-
-const onboard = Onboard({
-  wallets: [injected, walletLink, walletConnect],
-  chains: [
-    {
-      id: "0x1", // chain ID must be in hexadecimel
-      token: "ETH", // main chain token
-      namespace: "evm",
-      label: "Ethereum Mainnet",
-      rpcUrl: MAINNET_RPC_URL
-    },
-    {
-      id: "0x3",
-      token: "tROP",
-      namespace: "evm",
-      label: "Ethereum Ropsten Testnet",
-      rpcUrl: ROPSTEN_RPC_URL
-    },
-    {
-      id: "0x4",
-      token: "rETH",
-      namespace: "evm",
-      label: "Ethereum Rinkeby Testnet",
-      rpcUrl: RINKEBY_RPC_URL
-    }
-  ],
-  appMetadata: {
-    name: "My App",
-    icon: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
-    description: "My app using Onboard",
-    recommendedInjectedWallets: [
-      { name: "Coinbase", url: "https://wallet.coinbase.com/" },
-      { name: "MetaMask", url: "https://metamask.io" }
-    ]
-  }
-});
-
-
-
-function InitialFocus() {
-    const { isOpen, onOpen, onClose } = useDisclosure()
-    const initialRef = React.useRef(null)
-    const finalRef = React.useRef(null)
-    const [_, setProvider] = useState();
-    const [account, setAccount] = useState();
-    const [error, setError] = useState("");
-    const [chainId, setChainId] = useState();
-    const [network, setNetwork] = useState();
-    const [isLoading, setIsLoading] = useState(false);
-    console.log('account details',account)
-    const connectWallet = async () => {
-      try {
-        const wallets = await onboard.connectWallet();
-        setIsLoading(true);
-        const { accounts, chains, provider } = wallets[0];
-        setAccount(accounts[0].address);
-        setChainId(chains[0].id);
-        setProvider(provider);
-        setIsLoading(false);
-      } catch (error) {
-        setError(error);
-      }
-    };
-  
-    const switchNetwork = async () => {
-      await onboard.setChain({ chainId: toHex(network) });
-    };
-  
-    const handleNetwork = (e) => {
-      const id = e.target.value;
-      setNetwork(Number(id));
-    };
-  
-    const disconnect = async () => {
-      const [primaryWallet] = await onboard.state.get().wallets;
-      if (!primaryWallet) return;
-      await onboard.disconnectWallet({ label: primaryWallet.label });
-      refreshState();
-    };
-  
-    const refreshState = () => {
-      setAccount("");
-      setChainId("");
-      setProvider();
-    };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-    return (
-      <>
-        <Button onClick={onOpen}>Create your bet</Button>
-  
-        <Modal
-          initialFocusRef={initialRef}
-          finalFocusRef={finalRef}
-          isOpen={isOpen}
-          onClose={onClose}
-        >
-          <ModalOverlay />
-          <ModalContent maxW="500px">
-            <ModalHeader>Create your account</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody pb={8}>
-              <FormControl>
-                <FormLabel>First name</FormLabel>
-                <Input ref={initialRef} placeholder='First name' />
-              </FormControl>
-  
-              <FormControl mt={4}>
-                <FormLabel>Last name</FormLabel>
-                <Input placeholder='Last name' />
-              </FormControl>
-            </ModalBody>
-  
-            <ModalFooter>
-              {/* <Button colorScheme='blue' mr={3}>
-                Save
-              </Button> */}
-              {isLoading && <div>Loadings...</div>}
-            <HStack alignItems="left">
-              <VStack  >
-              <HStack >
-                {!account ? (
-                  <Button onClick={connectWallet}>Connect Wallet</Button>
-                ) : (
-                  <Button onClick={disconnect}>Disconnect</Button>
-                )}
-              </HStack>
-                <HStack>
-                  <Text>{`Connection Status: `}</Text>
-                  {account ? (
-                    <CheckCircleIcon color="green" />
-                  ) : (
-                    <WarningIcon color="#cd5700" />
-                  )}
-                </HStack>
-                {account &&
-                <Tooltip label={account} placement="right">
-                  <Text>{`Account: ${truncateAddress(account)}`}</Text>
-                </Tooltip>
-                }
-                <Text>{`Network ID: ${
-                  chainId ? Number(chainId) : "No Network"
-                }`}</Text>
-              </VStack>
-            {account && (
-                <HStack justifyContent="flex-start" alignItems="flex-start">
-                  <Box
-                    maxW="sm"
-                    borderWidth="1px"
-                    borderRadius="lg"
-                    overflow="hidden"
-                    padding="10px"
-                  >
-                    <VStack>
-                      <Button onClick={switchNetwork} isDisabled={!network}>
-                        Switch Network
-                      </Button>
-                      <Select placeholder="Select network" onChange={handleNetwork}>
-                        <option value="3">Ropsten</option>
-                        <option value="4">Rinkeby</option>
-                      </Select>
-                    </VStack>
-                  </Box>
-                </HStack>
-              )}
-            <Text>{error ? error.message : null}</Text>
-              <Button onClick={onClose}>Cancel</Button>
-            </HStack>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      </>
-    )
-  }
-
-  export default InitialFocus;
+// export default function SelectWalletModal({
+//   isOpen,
+//   closeModal,
+//   connectWithProvider
+// }) {
+//   return (
+//     <Modal isOpen={isOpen} onClose={closeModal} isCentered>
+//       <ModalOverlay />
+//       <ModalContent w="300px">
+//         <ModalHeader>Select Wallet</ModalHeader>
+//         <ModalCloseButton
+//           _focus={{
+//             boxShadow: "none"
+//           }}
+//         />
+//         <ModalBody paddingBottom="1.5rem">
+//           <VStack>
+//             <Button
+//               variant="outline"
+//               onClick={() => {
+//                 connectWithProvider(getCoinbaseWalletProvider());
+//                 closeModal();
+//               }}
+//               w="100%"
+//             >
+//               <HStack w="100%" justifyContent="center">
+//                 <Image
+//                   src="/cbw.png"
+//                   alt="Coinbase Wallet Logo"
+//                   width={25}
+//                   height={25}
+//                   borderRadius="3px"
+//                 />
+//                 <Text>Coinbase Wallet</Text>
+//               </HStack>
+//             </Button>
+//             <Button
+//               variant="outline"
+//               onClick={() => {
+//                 connectWithProvider(getWalletConnectProvider());
+//                 closeModal();
+//               }}
+//               w="100%"
+//             >
+//               <HStack w="100%" justifyContent="center">
+//                 <Image
+//                   src="/wc.png"
+//                   alt="Wallet Connect Logo"
+//                   width={26}
+//                   height={26}
+//                   borderRadius="3px"
+//                 />
+//                 <Text>Wallet Connect</Text>
+//               </HStack>
+//             </Button>
+//             <Button
+//               variant="outline"
+//               onClick={() => {
+//                 connectWithProvider(getMetaMaskProvider());
+//                 closeModal();
+//               }}
+//               w="100%"
+//             >
+//               <HStack w="100%" justifyContent="center">
+//                 <Image
+//                   src="/mm.png"
+//                   alt="Metamask Logo"
+//                   width={25}
+//                   height={25}
+//                   borderRadius="3px"
+//                 />
+//                 <Text>Metamask</Text>
+//               </HStack>
+//             </Button>
+//           </VStack>
+//         </ModalBody>
+//       </ModalContent>
+//     </Modal>
+//   );
+// }

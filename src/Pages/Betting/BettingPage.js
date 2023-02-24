@@ -1,11 +1,15 @@
 import React ,{useEffect,useId,useState}from 'react'
 import { useParams } from 'react-router-dom'
+import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
+import detectEthereumProvider from '@metamask/detect-provider';
+
+import Web3 from 'web3';
 import './bettingpage.css'
 import {
     Table,
     Thead,
     Tbody,
-    Tfoot,
+    Tfoot,Text,
     Tr,
     Th,
     Td,
@@ -29,7 +33,23 @@ function BettingPage() {
     const [maxPotentialReturn  , setmaxPotentialReturn] = useState(0);
     const [name, setName] = useState('');
     const initialRef = React.useRef(null);
-    const finalRef = React.useRef(null);
+    const finalRef = React.useRef(null);  
+    const [walletAddress, setWalletAddress] = useState(null);
+    //const { isOpen, onOpen, onClose } = useDisclosure();
+    const web3 = new Web3(window.ethereum);
+
+    const connectWallet = async () => {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        // The user's accounts are returned as an array. We can use the first account for this example.
+        const connectedAddress = accounts[0];
+        setWalletAddress(accounts[0]);
+        console.log('Connected wallet address:', connectedAddress);
+      } catch (err) {
+        console.error('Failed to connect wallet:', err);
+      }
+    };
+    console.log("web3",walletAddress)
     useEffect(() => {
         const fetchData = async () => {
           try {
@@ -116,8 +136,12 @@ function BettingPage() {
           return newOddsData;
         });
       };
-      const handleSubmit = (event) => {
+
+
+
+      const handleSubmit = async(event) => {
         event.preventDefault();
+       
         const betData = {
           TotalBetAmount: TotalBetAmount,
           maxPotentialReturn: maxPotentialReturn,
@@ -142,13 +166,47 @@ function BettingPage() {
             console.error(error);
           }
         };
-      
         sendData();
       };
-      
+     
+    
+      const  signTransaction=async()=> {
+        const provider = await detectEthereumProvider();
+      if (provider) {
+        // Request permission to access the user's Ethereum account
+        await provider.request({ method: 'eth_requestAccounts' });
+    
+        // Create a Web3 instance with the injected provider
+        const web3 = new Web3(window.ethereum);
+    
+        // Construct the transaction object
+        const transaction = {
+          to: user?.CryptoAccount.AccountAddress,
+          value: web3.utils.toWei('1', 'ether'),
+          gas: 21000,
+          gasPrice: await web3.eth.getGasPrice(),
+        };
+    
+        // Sign the transaction using the user's Ethereum account
+        const [account] = await web3.eth.getAccounts();
+        const privateKey = await web3.eth.getPrivateKey(account);
+        
+        const signedTransaction = await web3.eth.accounts.signTransaction(transaction,privateKey);
+    
+        // Send the signed transaction to the Ethereum network
+        const result = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+        console.log('Transaction successful:', result);
+      } else {
+        console.error('MetaMask not installed');
+      }
+    }
+    
+
+   console.log(user)      
   return (
     <div>
         <Container className='table'>
+          {/* <Button onClick={signTransaction}>Test transaction</Button> */}
             <Card>
             <h2 className='heading'>{user?.name}</h2>
             <HStack marginLeft="20px">
@@ -204,6 +262,15 @@ function BettingPage() {
               <Input ref={initialRef} placeholder='First name'  value={name}
             onChange={(e) => setName(e.target.value)} />
             </FormControl>
+            {!walletAddress &&<Button margin="20px" onClick={connectWallet}>Connect Wallet</Button>}
+            <HStack>
+            <Text  margin="20px" >{`Wallet Connection Status: `}</Text>
+            {walletAddress ? (
+              <CheckCircleIcon color="green" />
+            ) : (
+              <WarningIcon color="#cd5700" />
+            )}
+          </HStack>
           </ModalBody>
           <ModalFooter>
             <Button colorScheme='blue' mr={3} onClick={JoinGame}>

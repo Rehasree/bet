@@ -1,32 +1,26 @@
 import React,{useEffect,useState} from 'react'
-import { VStack, Text, HStack,Button} from "@chakra-ui/react";
+import { VStack, Text, HStack,Button,useDisclosure} from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import Web3 from 'web3';
+import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
 
 function Home(){
     const navigate = useNavigate ();
     const [walletAddress, setWalletAddress] = useState(null);
+    //const { isOpen, onOpen, onClose } = useDisclosure();
+    const web3 = new Web3(window.ethereum);
 
-  useEffect(() => {
-    async function loadWalletAddress() {
-      if (window.ethereum) {
-        const web3 = new Web3(window.ethereum);
-        try {
-          await window.ethereum.enable();
-          await window.ethereum.request({ method: 'eth_requestAccounts' });
-          console.log("Successfully connected to Ethereum wallet.");
-          const accounts = await web3.eth.getAccounts();
-          setWalletAddress(accounts[0]);
-        } catch (error) {
-          console.error(error);
-        }
-      } else {
-        console.error("No Ethereum wallet found. Please install MetaMask.");
+    const connectWallet = async () => {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        // The user's accounts are returned as an array. We can use the first account for this example.
+        const connectedAddress = accounts[0];
+        setWalletAddress(accounts[0]);
+        console.log('Connected wallet address:', connectedAddress);
+      } catch (err) {
+        console.error('Failed to connect wallet:', err);
       }
-    }
-    loadWalletAddress();
-  }, []);
-
+    };
     console.log("web3",walletAddress)
     const handleClick = () => {
         navigate("/create-bet");
@@ -34,6 +28,7 @@ function Home(){
   
   return (
     <div>
+      {/* <Button onClick={connectWallet}>Connect wallet</Button> */}
       <VStack justifyContent="center" alignItems="center" h="100vh">
        <HStack marginBottom="10px">
           <Text
@@ -58,7 +53,16 @@ function Home(){
              Win!
           </Text>
         </HStack>
-            <Button onClick={handleClick} >Create your bet</Button>
+            {walletAddress?<Button onClick={handleClick} >Create your bet</Button>
+            :<Button onClick={connectWallet}>Connect Wallet</Button>}
+            <HStack>
+            <Text>{`Wallet Connection Status: `}</Text>
+            {walletAddress ? (
+              <CheckCircleIcon color="green" />
+            ) : (
+              <WarningIcon color="#cd5700" />
+            )}
+          </HStack>
         <HStack>
         </HStack>
 

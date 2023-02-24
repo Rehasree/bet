@@ -1,4 +1,4 @@
-import React,{useState} from 'react'
+import React,{useState,useEffect} from 'react'
 import {
   FormControl,
   FormLabel,
@@ -11,6 +11,7 @@ import {
   Textarea,FormHelperText
 } from '@chakra-ui/react'
 import './createbet.css'
+import Web3 from 'web3';
 import { useNavigate } from "react-router-dom";
 
 
@@ -19,9 +20,14 @@ function CreateBet() {
 
   const [formData, setFormData] = useState({});
   const [numInputs, setNumInputs] = useState(1);
+  const [walletAddress, setWalletAddress] = useState(null);
   const [inputs, setInputs] = useState([{ odds: '', value: '' }]);
   const [uid, setUid] = useState("")
   const navigate = useNavigate ();
+  const web3 = new Web3(window.ethereum);
+
+ 
+  
   const multihandleInputChange = (index, e) => {
     const { name, value } = e.target;
     const newInputs = [...inputs];
@@ -52,7 +58,6 @@ function CreateBet() {
     }));
     setFormData((prevData) => ({
       ...prevData,
-      "amount": 0,
     }));
   };
   const handleSubmit= async()=>{
@@ -61,7 +66,7 @@ function CreateBet() {
       "odds": inputs
     }));
     console.log('formdata',formData)
-    const response = await fetch('https://bet-platform.rehasreekoneru.repl.co', {
+    const response = await fetch('https://Transactions.rehasreekoneru.repl.co/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -79,6 +84,25 @@ function CreateBet() {
     }
     
   }
+
+  const sendTransaction = async (betAmount, walletAddress) => {
+    try {
+      const betAmountWei = web3.utils.toWei(betAmount.toString(), 'ether');
+      
+      const transaction = {
+        to: 'YOUR_WALLET_ADDRESS',
+        value: betAmountWei,
+        gas: 21000, 
+        gasPrice: await web3.eth.getGasPrice(),
+      };
+      const signedTransaction = await web3.eth.accounts.signTransaction(transaction, walletAddress);
+      const result = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+      console.log('Transaction successful:', result);
+    } catch (err) {
+      console.error('Transaction failed:', err);
+    }
+  };
+  
  
 
   return (
