@@ -66,7 +66,7 @@ function CreateBet() {
       "odds": inputs
     }));
     console.log('formdata',formData)
-    const response = await fetch('https://bet-platform.rehasreekoneru.repl.co/', {
+    const response = await fetch('https://Transactions.rehasreekoneru.repl.co', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -85,24 +85,7 @@ function CreateBet() {
     
   }
 
-  const sendTransaction = async (betAmount, walletAddress) => {
-    try {
-      const betAmountWei = web3.utils.toWei(betAmount.toString(), 'ether');
-      
-      const transaction = {
-        to: 'YOUR_WALLET_ADDRESS',
-        value: betAmountWei,
-        gas: 21000, 
-        gasPrice: await web3.eth.getGasPrice(),
-      };
-      const signedTransaction = await web3.eth.accounts.signTransaction(transaction, walletAddress);
-      const result = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
-      console.log('Transaction successful:', result);
-    } catch (err) {
-      console.error('Transaction failed:', err);
-    }
-  };
-  
+ 
  
 
   return (

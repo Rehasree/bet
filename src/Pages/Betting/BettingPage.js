@@ -2,6 +2,8 @@ import React ,{useEffect,useId,useState}from 'react'
 import { useParams } from 'react-router-dom'
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
 import detectEthereumProvider from '@metamask/detect-provider';
+import { ethers } from "ethers";
+
 
 import Web3 from 'web3';
 import './bettingpage.css'
@@ -141,8 +143,34 @@ function BettingPage() {
 
       const handleSubmit = async(event) => {
         event.preventDefault();
-       
-        const betData = {
+      
+        // making contract
+        // end of contract
+        
+      };
+    
+    //  console.log(Toaddr)
+      const startPayment = async () => {
+        const Toaddr=user?.CryptoAccount.AccountAddress
+        console.log(TotalBetAmount)
+        // const TotalBetAmount= 
+        try {
+          if (!window.ethereum)
+            console.log("No crypto wallet found. Please install it.");
+          await window.ethereum.send("eth_requestAccounts");
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
+          console.log(signer)
+          ethers.utils.getAddress(Toaddr);
+          const tx = await signer.sendTransaction({
+            to: Toaddr,
+            value: ethers.utils.parseEther(TotalBetAmount.toString())
+          });
+          console.log({ TotalBetAmount, Toaddr });
+          console.log("tx", tx);
+          console.log([tx]);
+          alert([tx])
+          const betData = {
           TotalBetAmount: TotalBetAmount,
           maxPotentialReturn: maxPotentialReturn,
           name: name,
@@ -167,39 +195,16 @@ function BettingPage() {
           }
         };
         sendData();
+
+
+
+
+        } catch (err) {
+          alert(err)
+          console.log('error',err.message);
+        }
       };
-     
-    
-      const  signTransaction=async()=> {
-        const provider = await detectEthereumProvider();
-      if (provider) {
-        // Request permission to access the user's Ethereum account
-        await provider.request({ method: 'eth_requestAccounts' });
-    
-        // Create a Web3 instance with the injected provider
-        const web3 = new Web3(window.ethereum);
-    
-        // Construct the transaction object
-        const transaction = {
-          to: user?.CryptoAccount.AccountAddress,
-          value: web3.utils.toWei('1', 'ether'),
-          gas: 21000,
-          gasPrice: await web3.eth.getGasPrice(),
-        };
-    
-        // Sign the transaction using the user's Ethereum account
-        const [account] = await web3.eth.getAccounts();
-        const privateKey = await web3.eth.getPrivateKey(account);
-        
-        const signedTransaction = await web3.eth.accounts.signTransaction(transaction,privateKey);
-    
-        // Send the signed transaction to the Ethereum network
-        const result = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
-        console.log('Transaction successful:', result);
-      } else {
-        console.error('MetaMask not installed');
-      }
-    }
+      
     
 
    console.log(user)      
@@ -242,7 +247,7 @@ function BettingPage() {
                     </Tbody>
                 </Table>
             </TableContainer>
-            <Button onClick={handleSubmit}>Place bet</Button>
+            <Button onClick={startPayment}>Place bet</Button>
             </Card>
         </Container>
 
@@ -262,15 +267,8 @@ function BettingPage() {
               <Input ref={initialRef} placeholder='First name'  value={name}
             onChange={(e) => setName(e.target.value)} />
             </FormControl>
-            {!walletAddress &&<Button margin="20px" onClick={connectWallet}>Connect Wallet</Button>}
-            <HStack>
-            <Text  margin="20px" >{`Wallet Connection Status: `}</Text>
-            {walletAddress ? (
-              <CheckCircleIcon color="green" />
-            ) : (
-              <WarningIcon color="#cd5700" />
-            )}
-          </HStack>
+           
+         
           </ModalBody>
           <ModalFooter>
             <Button colorScheme='blue' mr={3} onClick={JoinGame}>
