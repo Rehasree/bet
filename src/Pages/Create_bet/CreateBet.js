@@ -66,7 +66,7 @@ function CreateBet() {
       "odds": inputs
     }));
     console.log('formdata',formData)
-    const response = await fetch('https://Transactions.rehasreekoneru.repl.co/', {
+    const response = await fetch('https://bet-platform.rehasreekoneru.repl.co/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
